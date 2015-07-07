@@ -9,7 +9,7 @@
     "authors": [
         {
             "name": "Alexey Fedorov",
-	    "homepage": "http://github.com/fau/onpay_class",
+	    "homepage": "http://github.com/fau/onpay_class"
         }
     ],
     "minimum-stability": "stable",
