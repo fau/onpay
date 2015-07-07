@@ -159,30 +159,18 @@ class Onpay
 	 * @param string $username адрес формы onpay. Устанавливает Onpay::$userform
 	 * @param string $key ключ API IN. Устанавливает Onpay::$key
 	 */
-	public function __construct($mode, $username, $key)
+	public function __construct($db, $username, $key)
 	{
 		$this->userform = $username;
 		$this->key = $key;
 		$this->mode = $mode;
-		if ($mode === 'internal_db') {
-			$this->db = new SQLite3(__DIR__ . '/onpay.db');
-			$result = $this->db->exec('
-					CREATE TABLE IF NOT EXISTS "orders" (
-			            "id" integer PRIMARY KEY AUTOINCREMENT,
-						"summ" text null,
-						"onpay_id" text null,
-						"user_phone" text null,
-						"user_email" text null,
-						"create_date" text,
-						"payed_date" text,
-						"payed" BOOLEAN DEFAULT "0" NULL);
-				');
-			if ($result === false) {
-				$this->err('База данных не создана из-за сл. ошибок: ' . $this->db->lastErrorMsg());
-			} else {
-				$this->dbg('Создана база данных onpay...');
-			}
-		}
+        $this->db = $db;
+        $result = $this->db->init();
+        if ($result === false) {
+            $this->err('База данных не создана из-за сл. ошибок: ' . $this->db->lastErrorMsg());
+        } else {
+            $this->dbg('Создана база данных onpay...');
+        }
 	}
 
 
@@ -200,15 +188,11 @@ class Onpay
 	public function get_form($type = 'redirect', $summ, $user_email)
 	{
 		$date = date('d:m:Y H:i');
-		if ($this->mode == "internal_db") {
-			if ($this->db->exec("INSERT INTO 'orders' ('summ', 'user_email', 'create_date', 'payed') VALUES ('$summ', '$user_email', '$date', '0')")) {
-			} else {
-				$this->err('Error DB insert: ' . $this->db->lastErrorMsg());
-				return false;
-			}
-		} else {
-			// TODO Тут нужно сделать чтение id из переданного объекта БД
-		}
+        if (!$this->db->insertOrder($summ, $user_email, $date) ) {
+            $this->err('Error DB insert: ' . $this->db->lastErrorMsg());
+            return false;
+        }
+
 		$order_id = $this->get_last_order();
 		$md5summ = $this->to_float($summ);
 		$md5check = strtoupper(md5("fix;{$md5summ};{$this->curency};{$order_id};{$this->convert};{$this->key}"));
@@ -425,18 +409,17 @@ class Onpay
 		$order_id = intval($request['pay_for']);
 		$onpay_id = intval($request['onpay_id']);
 		$payed_date = date('d:m:Y H:i');
-		if ($this->mode == 'internal_db') {
-			$this->db->exec("UPDATE orders SET onpay_id = '$onpay_id', payed_date = '$payed_date', payed = 1 WHERE id = $order_id");
-		} else {
-			//TODO Тут нужно дописать функционал установки статуса "Оплачено" в переданной пользователем БД.
-		}
+    	if (!$this->db->updateOrder($order_id, $onpay_id, $payed_date)) {
+            $this->err('Error DB update: ' . $this->db->lastErrorMsg());
+            return false;
+        }
+        return true;
+
 	}
 
 	private function get_payed_status($order_id)
 	{
-		if ($this->mode == 'internal_db') {
-			return $this->db->querySingle("SELECT payed FROM orders WHERE id = $order_id");
-		}
+		return $this->db->orderStatus($order_id);
 	}
 
 	/**
@@ -449,16 +432,7 @@ class Onpay
 	 */
 	public function check_order($order_id, $summ = null)
 	{
-		$result = $this->db->querySingle("SELECT * FROM orders WHERE id = '{$order_id}'", true);
-		if ($result['id'] && !$result['payed']) {
-			if (isset($summ)) {
-				$summ = floatval($summ);
-				return ($summ > 0 && $result['summ'] <= $summ);
-			}
-			return true;
-		} else {
-			return false;
-		}
+		$result = $this->db->findOrder($order_id, $summ);
 	}
 
 	/**
