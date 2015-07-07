@@ -5,6 +5,7 @@
     "keywords": ["onpay","onpay.ru"],
     "homepage": "https://github.com/fau/onepay_class",
     "license": "MIT",
+    "version": "1.0.0"
     "authors": [
         {
             "name": "Alexey Fedorov",
@@ -12,7 +13,7 @@
             "role": "Developer"
         }
     ],
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "require": {
         "php": ">=5.4.0"
     },
