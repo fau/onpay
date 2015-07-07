@@ -3,11 +3,13 @@
     "type": "library",
     "description": "Class for payment gate onpay.ru",
     "keywords": ["onpay","onpay.ru"],
-    "homepage": "https://github.com/fau/class",
+    "homepage": "https://github.com/fau/onepay_class",
     "license": "MIT",
     "authors": [
         {
             "name": "Alexey Fedorov",
+	    "email": "fau@mail.ru",
+	    "homepage": "https://github.com/fau/onpay_class"
             "role": "Developer"
         }
     ],
