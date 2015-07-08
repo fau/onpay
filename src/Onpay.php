@@ -434,13 +434,13 @@ class Onpay
 	{
 		switch ($num) {
 			case '2':
-				$err = "Error 2. Payment declined.";
+				$err = "bad_pay";//"Error 2. Payment declined.";
 				break;
 			case '3':
-				$err = "Error 3. Error in the parameters.";
+				$err = "bad_pay";//"Error 3. Error in the parameters.";
 				break;
 			case '7':
-				$err = "Error 7. Authorization error. MD5 signature is incorrect.";
+				$err = "bad_pay";//"Error 7. Authorization error. MD5 signature is incorrect.";
 				break;
 			default:
 				$err = "";
