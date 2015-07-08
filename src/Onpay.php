@@ -192,9 +192,9 @@ class Onpay
             $this->err('Error DB insert: ' . $this->db->lastErrorMsg());
             return false;
         }
-
-		$order_id = $this->get_last_order();
-		$md5summ = $this->to_float($summ);
+    	$order_id = $this->get_last_order();
+        var_dump($order_id);
+        $md5summ = $this->to_float($summ);
 		$md5check = strtoupper(md5("fix;{$md5summ};{$this->curency};{$order_id};{$this->convert};{$this->key}"));
 		$price_final = ($this->price_final) ? "&price_final=true" : "";
 		$url = "http://secure.onpay.ru/pay/{$this->userform}?pay_mode=fix".
@@ -217,7 +217,6 @@ class Onpay
 		if(!empty($this->url_fail)) {
 			$url .= "&url_fail=".urlencode($this->url_fail);
 		}
-
 		$this->dbg($url);
 		switch ($type) {
 			case 'redirect':
@@ -432,7 +431,7 @@ class Onpay
 	 */
 	public function check_order($order_id, $summ = null)
 	{
-		$result = $this->db->findOrder($order_id, $summ);
+		return $this->db->findOrder($order_id, $summ);
 	}
 
 	/**
