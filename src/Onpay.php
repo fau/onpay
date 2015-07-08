@@ -408,8 +408,8 @@ class Onpay
 		}
 		$data['code'] = $num;
 		$data['comment'] = $err;
-		//echo $this->gen_xml_answer($data);
-        var_dump($this->error);
+		echo $this->gen_xml_answer($data);
+        //var_dump($this->error);
 		exit;
 	}
 
