@@ -360,7 +360,7 @@ class Onpay
                     $this->err('Неверная валюта платежа');
                     $err =3;
                 }
-                elseif ($this->makeMD5($order['amount'], $order['currency'], $order['id'])!=$request['id']){
+                elseif ($this->makeMD5($order['amount'], $order['currency'], $order['id'])!=$request['md5']){
                     $this->err('Неправильный md5');
                     $err =7;
                 }
@@ -408,7 +408,8 @@ class Onpay
 		}
 		$data['code'] = $num;
 		$data['comment'] = $err;
-		echo $this->gen_xml_answer($data);
+		//echo $this->gen_xml_answer($data);
+        var_dump($this->error);
 		exit;
 	}
 
