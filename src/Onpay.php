@@ -383,9 +383,17 @@ class Onpay
         if ($err==0) {
             $order = $this->db->findOrder($order_id);
             if ($order) {
-                if (floatval($request['amount'])<floatval($order['amount'])) {
+                if ( (($type=='pay'  ) and (floatval($request['amount'])< floatval($order['amount'])))){
                     $this->err('Неверная сумма платежа');
                     $err =3;
+                }
+                elseif ( (($type=='check') and (floatval($request['amount'])>floatval($order['amount']))) ){
+                    $this->err('Переплата');
+                    $err =3;
+                }
+                elseif ( (($type=='check') and (floatval($request['amount'])<floatval($order['amount']))) ){
+                    $this->err('Недоплата');
+                    $err =2;
                 }
                 elseif ($request['order_currency']!=$order['currency']){
                     $this->err('Неверная валюта платежа');
