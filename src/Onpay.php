@@ -13,18 +13,6 @@
 
 namespace Fau\Onpay;
 
-interface IOnpay_db
-{
-    public function __construct($dbname);
-    public function init();
-    public function lastErrorMsg();
-    public function insertOrder($summ, $user_email, $date);
-    public function lastInsertRowID();
-    public function updateOrder($order_id, $onpay_id, $payed_date);
-    public function orderStatus($order_id);
-    public function findOrder($order_id, $summ);
-}
-
 /**
  * Класс взаимодействия с API Onpay
  *
@@ -149,18 +137,6 @@ class Onpay
 	var $db;
 
 	/**
-	 * Режим работы класса.
-	 *
-	 * Возможные варианты:
-	 * internal_db - используется внутренняя БД класса;
-	 * external_db - используется объект пользовательской БД.
-	 * TODO Пока работает только режим internal_db.
-	 * По умолчанию: internal_db
-	 * @var string
-	 */
-	var $mode = "internal_db";
-
-	/**
 	 * Содержит путь к директории класса.
 	 * @var string
 	 */
@@ -180,7 +156,7 @@ class Onpay
 	 * <code>
 	 * $opy = new Onpay('internal_db', 'petyastore', 'ajsdansdbascasc');
 	 * </code>
-	 * @param string $mode режим работы класса onpay. Устанавливает Onpay::$mode
+	 * @param string $db база данных
 	 * @param string $username адрес формы onpay. Устанавливает Onpay::$userform
 	 * @param string $key ключ API IN. Устанавливает Onpay::$key
 	 */
@@ -188,8 +164,7 @@ class Onpay
 	{
 		$this->userform = $username;
 		$this->key = $key;
-		$this->mode = $mode;
-        $this->db = $db;
+		$this->db = $db;
         $result = $this->db->init();
         if ($result === false) {
             $this->err('База данных не создана из-за сл. ошибок: ' . $this->db->lastErrorMsg());
