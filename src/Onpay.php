@@ -280,7 +280,17 @@ class Onpay
 	}
 
     protected function makeMD5_ask($data){
-        $str4md5 = "{$data['type']};{$data['pay_for']};{$data['onpay_id']};{$data['order_amount']};{$data['order_currency']};" . $this->key;
+        switch(trim($data['type'])) {
+            case 'pay':
+                $str4md5 = "pay;{$data['pay_for']};{$data['onpay_id']};{$data['order_amount']};{$data['order_currency']};" . $this->key;
+                break;
+            case 'check':
+                $str4md5 = "check;{$data['pay_for']};{$data['order_amount']};{$data['order_currency']};" . $this->key;
+                break;
+            default:
+                $str4md5 = '';
+                break;
+        }
         $res =strtoupper(md5($str4md5));
         return $res;
     }
