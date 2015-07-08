@@ -10,8 +10,9 @@
  *
  */
 
+namespace Fau\Onpay;
 
-class onpay_db_sqllite3 extends ionepay_db
+class onpay_db_sqllite3 extends IOnpay_db
 {
 
     var $db;

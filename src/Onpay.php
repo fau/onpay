@@ -10,7 +10,10 @@
  * @namespace Onpay
  *
  */
-interface ionepay_db
+
+namespace Fau\Onpay;
+
+interface IOnpay_db
 {
     public function __construct($dbname);
     public function init();
