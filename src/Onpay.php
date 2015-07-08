@@ -352,7 +352,7 @@ class Onpay
         if ($err==0) {
             $order = $this->db->findOrder($order_id);
             if ($order) {
-                if ($request['amount']!=$order['amount']) {
+                if ($this->to_float($request['amount'])!=$this->to_float($order['amount'])) {
                     $this->err('Неверная сумма платежа');
                     $err =3;
                 }
