@@ -173,7 +173,11 @@ class Onpay
         }
 	}
 
-
+    protected function makeMD5($summ, $currency, $orderId){
+        $md5summ = $this->to_float($summ);
+        $md5check = strtoupper(md5("fix;{$md5summ};{$currency};{$orderId};{$this->convert};{$this->key}"));
+        return $md5check;
+    }
 	/**
 	 * Функция генерирует ссылку или редирект на платежную форму.
 	 *
@@ -193,9 +197,8 @@ class Onpay
             return false;
         }
     	$order_id = $this->get_last_order();
-        var_dump($order_id);
         $md5summ = $this->to_float($summ);
-		$md5check = strtoupper(md5("fix;{$md5summ};{$this->curency};{$order_id};{$this->convert};{$this->key}"));
+        $md5check = makeMD5($summ, $this->curency, $order_id);
 		$price_final = ($this->price_final) ? "&price_final=true" : "";
 		$url = "http://secure.onpay.ru/pay/{$this->userform}?pay_mode=fix".
 			"&pay_for={$order_id}" .
@@ -208,9 +211,9 @@ class Onpay
 		if(!empty($this->ln)) {
 			$url .= "&ln=".$this->ln;
 		}
-		if(!empty($this->price_final)) {
-			$url .= "&price_final=true";
-		}
+
+        $url .= $price_final;
+
 		if(!empty($this->url_success)) {
 			$url .= "&url_success=".urlencode($this->url_success);
 		}
@@ -246,35 +249,34 @@ class Onpay
 	 * @param array $request get или post запрос ($_REQUEST).
 	 * @return bool|string возвращает список ошибок или false, если ошибки отсутствуют.
 	 */
-	public function check_errors($request)
+	public function check_errors($type, $request)
 	{
-		$type = strtolower($request['type']);
 		$this->error = '';
-		if ($type == 'check' || $type == 'pay') {
-			switch ($type) {
-				case 'check':
-					if (empty($request['order_amount'])) $this->err('В запросе check отсутствует параметр order_amount');
-					if (empty($request['amount'])) $this->err('В запросе check отсутствует параметр amount');
-					if (empty($request['order_currency'])) $this->err('В запросе check отсутствует параметр order_currency');
-					if (empty($request['md5'])) $this->err('В запросе check отсутствует параметр md5');
-					if (empty($request['pay_for'])) $this->err('В запросе check отсутствует параметр pay_for');
-					break;
-				case 'pay':
-					if (empty($request['pay_for'])) $this->err('В запросе pay отсутствует параметр pay_for');
-					if (empty($request['order_amount'])) $this->err('В запросе pay отсутствует параметр order_amount');
-					if (empty($request['paymentDateTime'])) $this->err('В запросе pay отсутствует параметр paymentDateTime');
-					if (empty($request['paid_amount'])) $this->err('В запросе pay отсутствует параметр paid_amount');
-					if (empty($request['balance_currency'])) $this->err('В запросе pay отсутствует параметр balance_currency');
-					if (empty($request['order_currency'])) $this->err('В запросе pay отсутствует параметр order_currency');
-					if (empty($request['amount'])) $this->err('В запросе pay отсутствует параметр amount');
-					if (empty($request['balance_amount'])) $this->err('В запросе pay отсутствует параметр balance_amount');
-					if (empty($request['md5'])) $this->err('В запросе pay отсутствует параметр md5');
-					if (empty($request['onpay_id'])) $this->err('В запросе pay отсутствует параметр onpay_id');
-					break;
-			}
-		} else $this->err('Неверный ответ сервера. Запрос не содержит параметров check или pay');
-
-		return !empty($this->error);
+        switch ($type) {
+            case 'check':
+                if (empty($request['order_amount'])) $this->err('В запросе check отсутствует параметр order_amount');
+                if (empty($request['amount'])) $this->err('В запросе check отсутствует параметр amount');
+                if (empty($request['order_currency'])) $this->err('В запросе check отсутствует параметр order_currency');
+                if (empty($request['md5'])) $this->err('В запросе check отсутствует параметр md5');
+                if (empty($request['pay_for'])) $this->err('В запросе check отсутствует параметр pay_for');
+                break;
+            case 'pay':
+                if (empty($request['pay_for'])) $this->err('В запросе pay отсутствует параметр pay_for');
+                if (empty($request['order_amount'])) $this->err('В запросе pay отсутствует параметр order_amount');
+                if (empty($request['paymentDateTime'])) $this->err('В запросе pay отсутствует параметр paymentDateTime');
+                if (empty($request['paid_amount'])) $this->err('В запросе pay отсутствует параметр paid_amount');
+                if (empty($request['balance_currency'])) $this->err('В запросе pay отсутствует параметр balance_currency');
+                if (empty($request['order_currency'])) $this->err('В запросе pay отсутствует параметр order_currency');
+                if (empty($request['amount'])) $this->err('В запросе pay отсутствует параметр amount');
+                if (empty($request['balance_amount'])) $this->err('В запросе pay отсутствует параметр balance_amount');
+                if (empty($request['md5'])) $this->err('В запросе pay отсутствует параметр md5');
+                if (empty($request['onpay_id'])) $this->err('В запросе pay отсутствует параметр onpay_id');
+                break;
+            default:
+                $this->err('Неверный ответ сервера. Запрос не содержит параметров check или pay');
+                break;
+        }
+    	return empty($this->error)?0:2;
 	}
 
 	/**
@@ -345,28 +347,32 @@ class Onpay
 		$order_id = intval($request['pay_for']);
 		$request['code'] = 0;
 		$request['comment'] = 'OK';
-		if (!$this->check_errors($request)) {
-			if ($type == 'check') {
-				if ($this->check_order($order_id)) {
-					echo $this->gen_xml_answer($request);
-					return true;
-				} else {
-					$this->generate_error(2, $request);
-				}
-			} elseif ($type == 'pay') {
-				if ($this->check_order($order_id, $request['amount'])) {
-					echo $this->gen_xml_answer($request);
-					//TODO Все ок, меняем статус.
-					$this->set_payed_status($request);
-					return true;
-				} else {
-					$this->generate_error(2, $request);
-				}
-			}
-		} else {
-			$this->generate_error(3, $request);
-		}
-		return false;
+
+        $err = $this->check_errors($type, $request);
+        if ($err==0) {
+            $order = $this->db->findOrder($order_id);
+            if ($order) {
+                if ($request['amount']!=$order['amount']) {
+                    $this->err('Неверная сумма платежа');
+                    $err =3;
+                }
+                elseif ($request['order_currency']!=$order['currency']){
+                    $this->err('Неверная валюта платежа');
+                    $err =3;
+                }
+                elseif ($this->makeMD5($order['amount'], $order['currency'], $order['id'])!=$request['id']){
+                    $this->err('Неправильный md5');
+                    $err =7;
+                }
+                else {
+                    echo $this->gen_xml_answer($request);
+                    if ($type == 'pay') $this->set_payed_status($request);
+                    return true;
+                }
+            }
+        }
+        $this->generate_error($err, $request);
+        return false;
 	}
 
 
@@ -419,19 +425,6 @@ class Onpay
 	private function get_payed_status($order_id)
 	{
 		return $this->db->orderStatus($order_id);
-	}
-
-	/**
-	 * Проверка существования ордера по его id.
-	 *
-	 * Если установлен параметр $summ - то проверяется и то, чтоб оплаченная сумма была не меньше стоимости заказа.
-	 * @param integer $order_id id проверяемого ордера
-	 * @param string $summ если установлен - проверяется еще и корректность суммы.
-	 * @return bool true если ордер существует (и сумма соответсвует), иначе false
-	 */
-	public function check_order($order_id, $summ = null)
-	{
-		return $this->db->findOrder($order_id, $summ);
 	}
 
 	/**

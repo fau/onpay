@@ -20,5 +20,5 @@ interface IOnpay_db
     public function lastInsertRowID();
     public function updateOrder($order_id, $onpay_id, $payed_date);
     public function orderStatus($order_id);
-    public function findOrder($order_id, $summ);
+    public function findOrder($order_id);
 }
