@@ -1,5 +1,5 @@
 {
-    "name": "fau/onpay_class",
+    "name": "fau/onpay",
     "type": "library",
     "description": "Class for payment gate onpay.ru",
     "keywords": ["onpay","onpay.ru"],
