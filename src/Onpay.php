@@ -279,6 +279,28 @@ class Onpay
     	return empty($this->error)?0:2;
 	}
 
+    protected function makeMD5_ask($data){
+        $str4md5 = "{$data['type']};{$data['pay_for']};{$data['onpay_id']};{$data['order_amount']};{$data['order_currency']};" . $this->key;
+        $res =strtoupper(md5($str4md5));
+        return $res;
+    }
+
+    protected function makeMD5_result($data){
+        switch(trim($data['type'])) {
+            case 'pay':
+                $str4md5 = "pay;{$data['pay_for']};{$data['onpay_id']};{$data['pay_for']};{$data['order_amount']};{$data['order_currency']};{$data['code']};" . $this->key;
+                break;
+            case 'check':
+                $str4md5 = "check;{$data['pay_for']};{$data['order_amount']};{$data['order_currency']};{$data['code']};".$this->key;
+                break;
+            default:
+                $str4md5 = '';
+                break;
+        }
+        $res =strtoupper(md5($str4md5));
+        return $res;
+    }
+
 	/**
 	 * Генерирует корректный XML-ответ для onpay включая цифровую подпись.
 	 *
@@ -306,27 +328,26 @@ class Onpay
 	public function gen_xml_answer($data)
 	{
 		$ret = "";
-		switch(trim($data['type'])) {
+        $md5 = $this->makeMD5_result($data);
+        switch(trim($data['type'])) {
 			case 'pay':
-				$str4md5 = "pay;{$data['pay_for']};{$data['onpay_id']};{$data['pay_for']};{$data['order_amount']};{$data['order_currency']};{$data['code']};".$this->key; 
-				$ret = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+                $ret = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <result>
 <code>{$data['code']}</code>
 <comment>{$data['comment']}</comment>
 <onpay_id>{$data['onpay_id']}</onpay_id>
 <pay_for>{$data['pay_for']}</pay_for>
 <order_id>{$data['pay_for']}</order_id>
-<md5>".strtoupper(md5($str4md5))."</md5>
+<md5>$md5</md5>
 </result>"; 
 				break;
 			case 'check':
-				$str4md5 = "check;{$data['pay_for']};{$data['order_amount']};{$data['order_currency']};{$data['code']};".$this->key; 
 				$ret = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <result>
 <code>{$data['code']}</code>
 <pay_for>{$data['pay_for']}</pay_for>
 <comment>{$data['comment']}</comment>
-<md5>".strtoupper(md5($str4md5))."</md5>
+<md5>$md5</md5>
 </result>";
 				break;
 		}
@@ -352,7 +373,7 @@ class Onpay
         if ($err==0) {
             $order = $this->db->findOrder($order_id);
             if ($order) {
-                if ($this->to_float($request['amount'])!=$this->to_float($order['amount'])) {
+                if (floatval($request['amount'])<floatval($order['amount'])) {
                     $this->err('Неверная сумма платежа');
                     $err =3;
                 }
@@ -360,7 +381,7 @@ class Onpay
                     $this->err('Неверная валюта платежа');
                     $err =3;
                 }
-                elseif ($this->makeMD5($order['amount'], $order['currency'], $order['id'])!=$request['md5']){
+                elseif ($this->makeMD5_ask($request)!=$request['md5']){
                     $this->err('Неправильный md5');
                     $err =7;
                 }
@@ -409,8 +430,7 @@ class Onpay
 		$data['code'] = $num;
 		$data['comment'] = $err;
 		echo $this->gen_xml_answer($data);
-        //var_dump($this->error);
-		exit;
+        exit;
 	}
 
 
