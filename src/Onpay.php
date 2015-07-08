@@ -57,7 +57,7 @@ class Onpay
 	 * По умолчанию: RUR
 	 * @var string
 	 */
-	var $curency = 'RUR';
+	var $currency = 'RUR';
 
 	/**
 	 * Принудительная конвертация платежей в валюту ценника.
@@ -192,18 +192,18 @@ class Onpay
 	public function get_form($type = 'redirect', $summ, $user_email)
 	{
 		$date = date('d:m:Y H:i');
-        if (!$this->db->insertOrder($summ, $user_email, $date) ) {
+        if (!$this->db->insertOrder($summ, $this->currency, $user_email, $date) ) {
             $this->err('Error DB insert: ' . $this->db->lastErrorMsg());
             return false;
         }
     	$order_id = $this->get_last_order();
         $md5summ = $this->to_float($summ);
-        $md5check = makeMD5($summ, $this->curency, $order_id);
+        $md5check = makeMD5($summ, $this->currency, $order_id);
 		$price_final = ($this->price_final) ? "&price_final=true" : "";
 		$url = "http://secure.onpay.ru/pay/{$this->userform}?pay_mode=fix".
 			"&pay_for={$order_id}" .
 			"&price={$md5summ}" .
-			"&ticker={$this->curency}" .
+			"&ticker={$this->currency}" .
 			"&convert={$this->convert}" .
 			"&md5={$md5check}" .
 			"&user_email=".urlencode($user_email) .
@@ -369,6 +369,10 @@ class Onpay
                     if ($type == 'pay') $this->set_payed_status($request);
                     return true;
                 }
+            }
+            else {
+                $this->err('Платеж не найден');
+                $err =2;
             }
         }
         $this->generate_error($err, $request);
