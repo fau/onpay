@@ -198,7 +198,7 @@ class Onpay
         }
     	$order_id = $this->get_last_order();
         $md5summ = $this->to_float($summ);
-        $md5check = makeMD5($summ, $this->currency, $order_id);
+        $md5check = $this->makeMD5($summ, $this->currency, $order_id);
 		$price_final = ($this->price_final) ? "&price_final=true" : "";
 		$url = "http://secure.onpay.ru/pay/{$this->userform}?pay_mode=fix".
 			"&pay_for={$order_id}" .
