@@ -456,7 +456,7 @@ class Onpay
 	{
 		$order_id = intval($request['pay_for']);
 		$onpay_id = intval($request['onpay_id']);
-		$payed_date = date('d:m:Y H:i');
+		$payed_date = new \DateTime($request['paymentDateTime']);//DateTime()date('d:m:Y H:i');
     	if (!$this->db->updateOrder($order_id, $onpay_id, $payed_date)) {
             $this->err('Error DB update: ' . $this->db->lastErrorMsg());
             return false;
