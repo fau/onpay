@@ -192,12 +192,12 @@ class Onpay
 	public function get_form($type = 'redirect', $summ, $user_email)
 	{
 		$date = date('d:m:Y H:i');
-        if (!$this->db->insertOrder($summ, $this->currency, $user_email, $date) ) {
+        $order_id = $this->db->insertOrder($summ, $this->currency, $user_email, $date);
+        if (!$order_id) {
             $this->err('Error DB insert: ' . $this->db->lastErrorMsg());
             return false;
         }
-    	$order_id = $this->get_last_order();
-        $md5summ = $this->to_float($summ);
+    	$md5summ = $this->to_float($summ);
         $md5check = $this->makeMD5($summ, $this->currency, $order_id);
 		$price_final = ($this->price_final) ? "&price_final=true" : "";
 		$url = "http://secure.onpay.ru/pay/{$this->userform}?pay_mode=fix".
@@ -223,13 +223,19 @@ class Onpay
 		$this->dbg($url);
 		switch ($type) {
 			case 'redirect':
-				return "<script type='text/javascript'>window.location = '" . $url . "'</script>";
+				$result = "<script type='text/javascript'>window.location = '" . $url . "'</script>";
+                break;
 			case 'url':
-				return $url;
+                $result = $url;
+                break;
 			default:
 				$this->err('Не правильно задан параметр type в функции get_form()');
-				return false;
+				$result = false;
 		}
+        if ($result){
+            $this->db->saveOrderUrl($order_id, $result);
+        }
+        return $result;
 	}
 
 	/**

@@ -17,8 +17,8 @@ interface IOnpay_db
     public function init();
     public function lastErrorMsg();
     public function insertOrder($summ, $currency, $user_email, $date);
-    public function lastInsertRowID();
     public function updateOrder($order_id, $onpay_id, $payed_date);
+    public function saveOrderUrl($order_id, $url);
     public function orderStatus($order_id);
     public function findOrder($order_id);
 }
